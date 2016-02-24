@@ -59,6 +59,58 @@ public class RCTCamera {
         return cameraInfo.previewHeight;
     }
 
+    public Camera.Size getBestPreviewSize(int type, int width, int height)
+    {
+        Camera camera = _cameras.get(type);
+        Camera.Size result = null;
+        if(camera == null) {
+            return null;
+        }
+        Camera.Parameters params = camera.getParameters();
+        for (Camera.Size size : params.getSupportedPreviewSizes()) {
+            if (size.width <= width && size.height <= height) {
+                if (result == null) {
+                    result = size;
+                } else {
+                    int resultArea = result.width * result.height;
+                    int newArea = size.width * size.height;
+
+                    if (newArea > resultArea) {
+                        result = size;
+                    }
+                }
+            }
+        }
+        return result;
+
+    }
+
+    public Camera.Size getBestPictureSize(int type, int width, int height)
+    {
+        Camera camera = _cameras.get(type);
+        Camera.Size result = null;
+        if(camera == null) {
+            return null;
+        }
+        Camera.Parameters params = camera.getParameters();
+        for (Camera.Size size : params.getSupportedPictureSizes()) {
+            if (size.width <= width && size.height <= height) {
+                if (result == null) {
+                    result = size;
+                } else {
+                    int resultArea = result.width * result.height;
+                    int newArea = size.width * size.height;
+
+                    if (newArea > resultArea) {
+                        result = size;
+                    }
+                }
+            }
+        }
+        return result;
+
+    }
+
     public void setOrientation(int orientation) {
         if (_orientation == orientation) {
             return;
@@ -150,8 +202,10 @@ public class RCTCamera {
         parameters.setRotation(cameraInfo.rotation);
 
         // set preview size
-        int width = parameters.getSupportedPreviewSizes().get(0).width;
-        int height = parameters.getSupportedPreviewSizes().get(0).height;
+        // defaults to full hd if available
+        Camera.Size optimalPreviewSize = getBestPreviewSize(type, 1920, 1080);
+        int width = optimalPreviewSize.width;
+        int height = optimalPreviewSize.height;
 
         parameters.setPreviewSize(width, height);
         try {
