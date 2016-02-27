@@ -421,6 +421,15 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
 
 
 - (void)captureStill:(NSInteger)target options:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+    // try first to change the preset to high resolution photo quality output
+    [self.session beginConfiguration];
+    if ([self.session canSetSessionPreset:AVCaptureSessionPresetPhoto]) {
+        
+        self.session.sessionPreset = AVCaptureSessionPresetPhoto;
+        
+    }
+    [self.session commitConfiguration];
+    
   dispatch_async(self.sessionQueue, ^{
 #if TARGET_IPHONE_SIMULATOR
       CGSize size = CGSizeMake(720, 1280);
@@ -448,6 +457,7 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
       NSData *imageData = UIImageJPEGRepresentation(image, 1.0);
       [self saveImage:imageData target:target metadata:nil resolve:resolve reject:reject];
 #else
+      
       [[self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo] setVideoOrientation:self.previewLayer.connection.videoOrientation];
 
       [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:[self.stillImageOutput connectionWithMediaType:AVMediaTypeVideo] completionHandler:^(CMSampleBufferRef imageDataSampleBuffer, NSError *error) {
@@ -586,7 +596,16 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
 }
 
 -(void)captureVideo:(NSInteger)target options:(NSDictionary *)options resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
-
+    // try to change the preset to high quality video and audio output
+    [self.session beginConfiguration];
+    if ([self.session canSetSessionPreset:AVCaptureSessionPresetHigh]) {
+        
+        self.session.sessionPreset = AVCaptureSessionPresetHigh;
+        
+    }
+    [self.session commitConfiguration];
+    
+    
   if (self.movieFileOutput.recording) {
     reject(RCTErrorUnspecified, nil, RCTErrorWithMessage(@"Already recording"));
     return;
